@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sentinel Robotics — Investor Deck</title>
+<link rel="stylesheet" href="../css/sentinel.css">
+<style>
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
+
+/* ── Deck Layout ── */
+.deck-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: rgba(11, 18, 16, 0.95);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--rule2);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 28px;
+  height: 48px;
+}
+
+.deck-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+}
+
+.deck-brand .mark {
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-weight: 700;
+  font-size: 10px;
+  color: var(--accent);
+}
+
+.deck-brand .wordmark {
+  font-family: 'Barlow', sans-serif;
+  font-weight: 200;
+  font-size: 14px;
+  letter-spacing: 6px;
+  text-transform: uppercase;
+  color: var(--fg);
+}
+
+.deck-progress {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.deck-dot {
+  width: 8px;
+  height: 8px;
+  border: 1px solid var(--fg3);
+  cursor: pointer;
+  transition: all 0.3s;
+  position: relative;
+}
+
+.deck-dot.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  box-shadow: 0 0 8px var(--accent-glow);
+}
+
+.deck-dot.visited {
+  background: var(--green-dim);
+  border-color: var(--green-mid);
+}
+
+.deck-dot:hover::after {
+  content: attr(data-label);
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 300;
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: var(--fg2);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.deck-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.deck-counter {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  color: var(--fg3);
+  letter-spacing: 2px;
+}
+
+.deck-btn {
+  background: none;
+  border: 1px solid var(--rule2);
+  color: var(--fg3);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 300;
+  font-size: 11px;
+  letter-spacing: 2px;
+  padding: 4px 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.deck-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent2);
+}
+
+.deck-btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.deck-exit {
+  color: var(--fg3);
+  text-decoration: none;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 300;
+  font-size: 10px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  transition: color 0.2s;
+}
+
+.deck-exit:hover { color: var(--accent2); }
+
+/* ── Slides Container ── */
+.slides-wrap {
+  position: fixed;
+  top: 48px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+}
+
+.slide {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  opacity: 0;
+  transform: translateX(60px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+  pointer-events: none;
+  overflow-y: auto;
+}
+
+.slide.active {
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: auto;
+}
+
+.slide.exit-left {
+  opacity: 0;
+  transform: translateX(-60px);
+}
+
+.slide-content {
+  max-width: 1100px;
+  width: 100%;
+}
+
+/* ── Slide Typography ── */
+.slide-tag {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 600;
+  font-size: 10px;
+  letter-spacing: 5px;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 16px;
+  display: block;
+}
+
+.slide-title {
+  font-family: 'Barlow', sans-serif;
+  font-weight: 200;
+  font-size: clamp(28px, 4vw, 52px);
+  line-height: 1.15;
+  color: var(--fg);
+  margin-bottom: 20px;
+}
+
+.slide-body {
+  font-weight: 300;
+  font-size: clamp(14px, 1.2vw, 16px);
+  color: var(--fg2);
+  line-height: 1.85;
+  max-width: 640px;
+}
+
+/* ── Slide Grids ── */
+.slide-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  align-items: start;
+}
+
+.slide-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.slide-grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+@media (max-width: 900px) {
+  .slide-grid-2 { grid-template-columns: 1fr; gap: 32px; }
+  .slide-grid-3 { grid-template-columns: 1fr; gap: 16px; }
+  .slide-grid-4 { grid-template-columns: 1fr 1fr; gap: 12px; }
+  .slide { padding: 24px 20px; }
+}
+
+@media (max-width: 600px) {
+  .slide-grid-4 { grid-template-columns: 1fr; }
+}
+
+/* ── Metric Cards ── */
+.metric-card {
+  background: var(--bg2);
+  border: 1px solid var(--rule2);
+  padding: 24px;
+}
+
+.metric-card .val {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 600;
+  font-size: 32px;
+  color: var(--fg);
+  letter-spacing: 1px;
+}
+
+.metric-card .val.red { color: var(--accent); }
+.metric-card .val.green { color: var(--green-light); }
+
+.metric-card .label {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 300;
+  font-size: 10px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--fg3);
+  margin-top: 6px;
+}
+
+.metric-card .desc {
+  font-size: 13px;
+  color: var(--fg2);
+  line-height: 1.6;
+  margin-top: 10px;
+}
+
+/* ── Comparison Columns ── */
+.compare-col {
+  background: var(--bg2);
+  border: 1px solid var(--rule2);
+  padding: 28px;
+}
+
+.compare-col.sentinel {
+  border-color: var(--green-mid);
+}
+
+.compare-col h4 {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+
+.compare-col h4.red { color: var(--accent); }
+.compare-col h4.green { color: var(--green-light); }
+
+.compare-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--rule);
+  font-size: 13px;
+}
+
+.compare-row .lbl { color: var(--fg2); }
+.compare-row .val {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 1px;
+}
+.compare-row .val.red { color: var(--accent); }
+.compare-row .val.green { color: var(--green-light); }
+
+/* ── Timeline ── */
+.tl-items {
+  display: grid;
+  gap: 2px;
+  margin-top: 32px;
+}
+
+.tl-item {
+  display: grid;
+  grid-template-columns: 60px 1fr;
+  gap: 20px;
+  background: var(--bg2);
+  padding: 20px 24px;
+  border-left: 2px solid var(--green-dim);
+}
+
+.tl-item.active { border-left-color: var(--accent); }
+
+.tl-month {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 600;
+  font-size: 18px;
+  color: var(--fg);
+  letter-spacing: 2px;
+}
+
+.tl-desc h4 {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  letter-spacing: 1px;
+  color: var(--fg);
+  margin-bottom: 4px;
+}
+
+.tl-desc p {
+  font-size: 13px;
+  color: var(--fg2);
+  line-height: 1.6;
+}
+
+/* ── Map Container ── */
+.map-embed {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: var(--bg);
+}
+
+.map-slide {
+  padding: 0 !important;
+}
+
+.map-slide .slide-content {
+  max-width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.map-header {
+  padding: 20px 28px;
+  flex-shrink: 0;
+}
+
+.map-frame {
+  flex: 1;
+  min-height: 0;
+}
+
+.map-frame iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+/* ── Round / Ask ── */
+.round-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  margin-top: 32px;
+}
+
+.round-box {
+  background: var(--bg2);
+  border: 1px solid var(--rule2);
+  padding: 32px;
+}
+
+.round-box h4 {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.round-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 6px 0;
+  font-size: 13px;
+}
+
+.round-line .lbl { color: var(--fg2); }
+.round-line .val {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--fg);
+  letter-spacing: 1px;
+}
+
+@media (max-width: 768px) {
+  .round-grid { grid-template-columns: 1fr; }
+}
+
+/* ── Keyboard hint ── */
+.kb-hint {
+  position: fixed;
+  bottom: 16px;
+  right: 28px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 300;
+  font-size: 9px;
+  letter-spacing: 3px;
+  color: var(--fg3);
+  opacity: 0.5;
+  z-index: 100;
+}
+
+.kb-hint kbd {
+  display: inline-block;
+  background: var(--bg2);
+  border: 1px solid var(--rule2);
+  padding: 1px 6px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  color: var(--fg3);
+}
+</style>
+</head>
+<body>
+
+<div class="scanline"></div>
+
+<!-- Deck Navigation -->
+<nav class="deck-nav">
+  <a href="../index.html" class="deck-brand">
+    <div class="mark">哨</div>
+    <span class="wordmark">Sentinel</span>
+  </a>
+
+  <div class="deck-progress" id="deckProgress"></div>
+
+  <div class="deck-controls">
+    <span class="deck-counter" id="deckCounter">01 / 12</span>
+    <button class="deck-btn" id="btnPrev" disabled>&larr; PREV</button>
+    <button class="deck-btn" id="btnNext">NEXT &rarr;</button>
+    <a href="#" class="deck-exit" id="deckLogout">Logout</a>
+  </div>
+</nav>
+
+<!-- Slides -->
+<div class="slides-wrap" id="slidesWrap">
+
+  <!-- SLIDE 1: Title -->
+  <div class="slide active" data-slide="0">
+    <div class="slide-content" style="text-align: center;">
+      <div style="margin-bottom: 32px;">
+        <div style="width: 72px; height: 72px; border: 1px solid var(--accent); display: inline-flex; align-items: center; justify-content: center; font-family: 'Noto Sans JP', sans-serif; font-weight: 700; font-size: 32px; color: var(--accent);">哨</div>
+      </div>
+      <div style="font-family: 'Barlow', sans-serif; font-weight: 200; font-size: clamp(36px, 5vw, 72px); letter-spacing: 16px; text-transform: uppercase; color: var(--fg); margin-bottom: 12px;">SENTINEL</div>
+      <div style="font-family: 'Barlow Condensed', sans-serif; font-weight: 300; font-size: 14px; letter-spacing: 8px; text-transform: uppercase; color: var(--fg3); margin-bottom: 40px;">Autonomous Pest Eradication Systems</div>
+      <div style="width: 60px; height: 1px; background: var(--accent); margin: 0 auto 40px;"></div>
+      <div style="font-family: 'Barlow Condensed', sans-serif; font-weight: 300; font-size: 11px; letter-spacing: 5px; text-transform: uppercase; color: var(--fg3);">Seed Round &mdash; Confidential &mdash; 2026</div>
+      <div style="font-family: 'Noto Sans JP', sans-serif; font-weight: 100; font-size: 12px; color: var(--fg3); letter-spacing: 3px; margin-top: 8px;">自律型害獣駆除システム</div>
+    </div>
+  </div>
+
+  <!-- SLIDE 2: The Problem -->
+  <div class="slide" data-slide="1">
+    <div class="slide-content">
+      <span class="slide-tag">01 &mdash; The Problem</span>
+      <h2 class="slide-title">A $2.5B crisis <em>no one is solving.</em></h2>
+      <div class="slide-grid-2" style="margin-top: 32px;">
+        <div>
+          <p class="slide-body">Feral hogs are the most destructive invasive vertebrate in the continental US. 9M+ animals across 35+ states, causing $2.5B+ in annual damage. They destroy crops, kill livestock, contaminate water, carry 30+ diseases including potential FMD vectors, and reproduce faster than any existing method can control.</p>
+          <p class="slide-body" style="margin-top: 16px;">Every incumbent solution &mdash; trapping, aerial gunning, poison bait &mdash; fails the same fundamental math: you need to remove 66% of the population annually just to hold numbers flat. Current methods achieve ~29%. The population grows regardless of spending.</p>
+        </div>
+        <div class="slide-grid-2" style="gap: 12px;">
+          <div class="metric-card"><div class="val red">$2.5B+</div><div class="label">Annual US Damage</div></div>
+          <div class="metric-card"><div class="val">9M+</div><div class="label">Feral Hogs (US)</div></div>
+          <div class="metric-card"><div class="val red">66%</div><div class="label">Removal Needed / Year</div></div>
+          <div class="metric-card"><div class="val">~29%</div><div class="label">Actually Achieved</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 3: Target Species -->
+  <div class="slide" data-slide="2">
+    <div class="slide-content">
+      <span class="slide-tag">02 &mdash; Target Species</span>
+      <h2 class="slide-title">Seven species. <em>One platform.</em></h2>
+      <p class="slide-body" style="margin-bottom: 32px;">Sentinel's authorised target list spans the most ecologically and economically destructive invasive vertebrate pests in the US. One hardware platform. Multiple ammunition types. Configurable engagement profiles per species.</p>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 2px;">
+        <div class="species-card" style="aspect-ratio: 1;"><img src="../assets/species/feral_hog.jpg" alt="Feral Hog" style="width:100%;height:100%;object-fit:cover;filter:brightness(0.5) saturate(0.7);"><div class="overlay"><div class="species-name" style="font-size:12px;">Feral Hog</div><div class="species-note">$2.5B+ / Primary</div></div></div>
+        <div class="species-card" style="aspect-ratio: 1;"><img src="../assets/species/coyote.jpg" alt="Coyote" style="width:100%;height:100%;object-fit:cover;filter:brightness(0.5) saturate(0.7);"><div class="overlay"><div class="species-name" style="font-size:12px;">Coyote</div><div class="species-note">Livestock</div></div></div>
+        <div class="species-card" style="aspect-ratio: 1;"><img src="../assets/species/groundhog.jpg" alt="Groundhog" style="width:100%;height:100%;object-fit:cover;filter:brightness(0.5) saturate(0.7);"><div class="overlay"><div class="species-name" style="font-size:12px;">Groundhog</div><div class="species-note">Infrastructure</div></div></div>
+        <div class="species-card" style="aspect-ratio: 1;"><img src="../assets/species/nutria.jpg" alt="Nutria" style="width:100%;height:100%;object-fit:cover;filter:brightness(0.5) saturate(0.7);"><div class="overlay"><div class="species-name" style="font-size:12px;">Nutria</div><div class="species-note">Wetlands</div></div></div>
+        <div class="species-card" style="aspect-ratio: 1;"><img src="../assets/species/starling.jpg" alt="Starling" style="width:100%;height:100%;object-fit:cover;filter:brightness(0.5) saturate(0.7);"><div class="overlay"><div class="species-name" style="font-size:12px;">Starling</div><div class="species-note">Ag Pest</div></div></div>
+        <div class="species-card" style="aspect-ratio: 1;"><img src="../assets/species/pigeon.jpg" alt="Pigeon" style="width:100%;height:100%;object-fit:cover;filter:brightness(0.5) saturate(0.7);"><div class="overlay"><div class="species-name" style="font-size:12px;">Pigeon</div><div class="species-note">Urban</div></div></div>
+        <div class="species-card" style="aspect-ratio: 1;"><img src="../assets/species/sparrow.jpg" alt="Sparrow" style="width:100%;height:100%;object-fit:cover;filter:brightness(0.5) saturate(0.7);"><div class="overlay"><div class="species-name" style="font-size:12px;">Sparrow</div><div class="species-note">Avian</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 4: The System -->
+  <div class="slide" data-slide="3">
+    <div class="slide-content">
+      <span class="slide-tag">03 &mdash; The System</span>
+      <h2 class="slide-title">Built from the ground up. <em>No legacy.</em></h2>
+      <div class="slide-grid-2" style="margin-top: 32px;">
+        <div>
+          <img src="../assets/images/hero-close.jpg" alt="MKIII System" style="width: 100%; display: block;">
+        </div>
+        <div>
+          <p class="slide-body" style="margin-bottom: 24px;">Purpose-built autonomous sentry for continuous unattended field operation. Full-electric actuation. Belt-fed multi-calibre. AI detection and tracking. Operator-authorised engagement with per-round chain-of-custody telemetry.</p>
+          <div class="spec-list">
+            <div class="spec-item"><span class="spec-label">Actuation</span><span class="spec-val">Full Electric</span></div>
+            <div class="spec-item"><span class="spec-label">Feed</span><span class="spec-val">Belt-Fed, Multi-Calibre</span></div>
+            <div class="spec-item"><span class="spec-label">Detection</span><span class="spec-val">Multispectral AI</span></div>
+            <div class="spec-item"><span class="spec-label">Engagement</span><span class="spec-val">Operator-Authorised</span></div>
+            <div class="spec-item"><span class="spec-label">Telemetry</span><span class="spec-val">Per-Round Logging</span></div>
+            <div class="spec-item"><span class="spec-label">Power</span><span class="spec-val">Solar + Battery</span></div>
+            <div class="spec-item"><span class="spec-label">Deployment</span><span class="spec-val">Unattended Field</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 5: Data Advantage -->
+  <div class="slide" data-slide="4">
+    <div class="slide-content">
+      <span class="slide-tag">04 &mdash; The Data Advantage</span>
+      <h2 class="slide-title">The C-UAS field has a <em>data quality crisis.</em></h2>
+      <div class="slide-grid-2" style="margin-top: 32px;">
+        <div>
+          <p class="slide-body">Every kinetic autonomous system &mdash; pest control or defense &mdash; needs training data from real-world engagements. Nobody has it. Existing C-UAS systems train on simulated data or controlled test shots. Sentinel generates real engagement data from day one of field deployment.</p>
+          <p class="slide-body" style="margin-top: 16px;">Every deployment produces the exact dataset that defense primes and autonomy companies will pay to access: real kinetic engagements against non-cooperative targets in uncontrolled environments. This is Sentinel's durable moat.</p>
+        </div>
+        <div>
+          <div class="metric-card" style="margin-bottom: 12px;">
+            <div class="val green">Real</div>
+            <div class="label">Engagement Data</div>
+            <div class="desc">Every deployment generates real-world kinetic engagement data against non-cooperative targets. Not simulated. Not lab conditions. Field data.</div>
+          </div>
+          <div class="metric-card" style="margin-bottom: 12px;">
+            <div class="val green">Dual-Use</div>
+            <div class="label">Revenue Stream</div>
+            <div class="desc">Pest control generates revenue. The same operations generate training datasets licensable to defense and autonomy companies. Two revenue streams from one deployment.</div>
+          </div>
+          <div class="metric-card">
+            <div class="val green">Moat</div>
+            <div class="label">Competitive Position</div>
+            <div class="desc">Data compounds. Every hour of field operation widens the gap. By the time a competitor builds hardware, Sentinel has years of irreplicable engagement data.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 6: Managed Service Model -->
+  <div class="slide" data-slide="5">
+    <div class="slide-content">
+      <span class="slide-tag">05 &mdash; Managed Service</span>
+      <h2 class="slide-title">Not pest management. <em>Pest elimination.</em></h2>
+      <p class="slide-body" style="margin-bottom: 32px;">Every incumbent sells mitigation. Sentinel is the first system capable of actually solving the problem. The pricing model reflects that.</p>
+      <div class="slide-grid-2">
+        <div class="compare-col">
+          <h4 class="red">Without Sentinel</h4>
+          <div class="compare-row"><span class="lbl">Annual hog damage</span><span class="val red">$25,000+</span></div>
+          <div class="compare-row"><span class="lbl">Annual control spend</span><span class="val red">$8,000–$12,000</span></div>
+          <div class="compare-row"><span class="lbl">Population trajectory</span><span class="val red">Growing ~16%/yr</span></div>
+          <div class="compare-row"><span class="lbl">Exit condition</span><span class="val red">None</span></div>
+          <div class="compare-row"><span class="lbl">Non-target risk</span><span class="val red">High</span></div>
+          <div class="compare-row" style="border-bottom: none; padding-top: 12px;"><span class="lbl"><strong>Total annual burden</strong></span><span class="val red">$33–37K</span></div>
+        </div>
+        <div class="compare-col sentinel">
+          <h4 class="green">Sentinel Managed Service</h4>
+          <div class="compare-row"><span class="lbl">Year 1 — Eradication</span><span class="val green">$45–55K</span></div>
+          <div class="compare-row"><span class="lbl">Includes</span><span class="val" style="color: var(--fg3); font-size: 11px;">Deploy + Unit + Ops + Telemetry</span></div>
+          <div class="compare-row"><span class="lbl">Year 2+ — Maintenance</span><span class="val green">$12–15K/yr</span></div>
+          <div class="compare-row"><span class="lbl">Population outcome</span><span class="val green">Eliminated</span></div>
+          <div class="compare-row"><span class="lbl">Non-target risk</span><span class="val green">Zero</span></div>
+          <div class="compare-row" style="border-bottom: none; padding-top: 12px;"><span class="lbl"><strong>Rancher saves (Yr 2+)</strong></span><span class="val green">$18–25K/yr</span></div>
+        </div>
+      </div>
+      <p style="font-size: 12px; color: var(--fg3); margin-top: 16px; line-height: 1.6;">Illustrative: 1,000-acre Texas cattle ranch. Floor deployment scenario. Texas alone has 2.6M feral hogs across 230+ counties.</p>
+    </div>
+  </div>
+
+  <!-- SLIDE 7: US Hog Map (iframe) -->
+  <div class="slide map-slide" data-slide="6">
+    <div class="slide-content">
+      <div class="map-header">
+        <span class="slide-tag">06 &mdash; Threat Assessment</span>
+        <h2 class="slide-title" style="font-size: clamp(20px, 2.5vw, 32px);">National Feral Hog <em>Population Spread</em></h2>
+      </div>
+      <div class="map-frame">
+        <iframe src="../maps/us-hog-map.html" class="map-embed" title="US Feral Hog Population Map"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 8: Texas 3D Model (iframe) -->
+  <div class="slide map-slide" data-slide="7">
+    <div class="slide-content">
+      <div class="map-header">
+        <span class="slide-tag">07 &mdash; Texas Density Model</span>
+        <h2 class="slide-title" style="font-size: clamp(20px, 2.5vw, 32px);">Feral Hog Propagation <em>1982–2024</em></h2>
+      </div>
+      <div class="map-frame">
+        <iframe src="../maps/texas-3d.html" class="map-embed" title="Texas Feral Hog 3D Density Model"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 9: Growth Timeline (iframe) -->
+  <div class="slide map-slide" data-slide="8">
+    <div class="slide-content">
+      <div class="map-header">
+        <span class="slide-tag">08 &mdash; Growth Trajectory</span>
+        <h2 class="slide-title" style="font-size: clamp(20px, 2.5vw, 32px);">Ten-Year Strategic <em>Roadmap</em></h2>
+      </div>
+      <div class="map-frame">
+        <iframe src="../maps/growth-timeline.html" class="map-embed" title="Sentinel Growth Timeline"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 10: Build Timeline -->
+  <div class="slide" data-slide="9">
+    <div class="slide-content">
+      <span class="slide-tag">09 &mdash; Build Timeline</span>
+      <h2 class="slide-title">$1M. 6–7 months. <em>Live-fire TRL 6.</em></h2>
+      <p class="slide-body" style="margin-bottom: 24px;">Hardware-first sprint. Build, break, refine, repeat. No bloat. No theoretical perfection. A working system in the field.</p>
+      <div class="tl-items">
+        <div class="tl-item active"><div class="tl-month">M1</div><div class="tl-desc"><h4>Setup & Initial Sprint</h4><p>LLC/IP formation, ATF consult, workspace, core team onboarded. First CAD sprint. Long-lead parts ordered.</p></div></div>
+        <div class="tl-item"><div class="tl-month">M2</div><div class="tl-desc"><h4>Mechanism Prototyping</h4><p>Fabricate and test electric actuation and belt feed on bench models. CAD sprint driven by findings.</p></div></div>
+        <div class="tl-item"><div class="tl-month">M3</div><div class="tl-desc"><h4>Core Assembly</h4><p>Integrate sensors and actuation. Initial dry-cycle testing. CAD sprint for fixes and refinements.</p></div></div>
+        <div class="tl-item"><div class="tl-month">M4</div><div class="tl-desc"><h4>Software Sprint</h4><p>AI detection and tracking, fire control, networked APIs. Full dry-cycle integration and validation.</p></div></div>
+        <div class="tl-item"><div class="tl-month">M5</div><div class="tl-desc"><h4>Static Live-Fire</h4><p>Range tests: accuracy, multi-ammo switching, reliability under sustained fire. CAD sprint on failures.</p></div></div>
+        <div class="tl-item active"><div class="tl-month">M6–7</div><div class="tl-desc"><h4>Dynamic Validation — TRL 6</h4><p>X-Y mount, dynamic tracking, swarm engagement tests. Final iterations. Prototype ready for field trials.</p></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 11: The Round -->
+  <div class="slide" data-slide="10">
+    <div class="slide-content">
+      <span class="slide-tag">10 &mdash; The Round</span>
+      <h2 class="slide-title">Seed: <em>$5–10M+</em></h2>
+      <p class="slide-body" style="margin-bottom: 24px;">Pre-seed to working prototype. This capital builds the system, proves the unit economics, and establishes the data moat.</p>
+      <div class="round-grid">
+        <div class="round-box">
+          <h4>Use of Funds</h4>
+          <div class="round-line"><span class="lbl">Hardware engineering & prototyping</span><span class="val">40%</span></div>
+          <div class="round-line"><span class="lbl">AI/ML & software development</span><span class="val">25%</span></div>
+          <div class="round-line"><span class="lbl">Field testing & range operations</span><span class="val">15%</span></div>
+          <div class="round-line"><span class="lbl">Legal, regulatory, compliance</span><span class="val">10%</span></div>
+          <div class="round-line"><span class="lbl">Ops & working capital</span><span class="val">10%</span></div>
+        </div>
+        <div class="round-box">
+          <h4>Key Milestones</h4>
+          <div class="round-line"><span class="lbl">Working prototype</span><span class="val">M3</span></div>
+          <div class="round-line"><span class="lbl">Static live-fire validation</span><span class="val">M5</span></div>
+          <div class="round-line"><span class="lbl">Dynamic TRL 6</span><span class="val">M6–7</span></div>
+          <div class="round-line"><span class="lbl">First pilot deployments</span><span class="val">M8–10</span></div>
+          <div class="round-line"><span class="lbl">Seed valuation (post-money)</span><span class="val" style="color: var(--accent);">$40M</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 12: Close -->
+  <div class="slide" data-slide="11">
+    <div class="slide-content" style="text-align: center;">
+      <div style="width: 72px; height: 72px; border: 1px solid var(--accent); display: inline-flex; align-items: center; justify-content: center; font-family: 'Noto Sans JP', sans-serif; font-weight: 700; font-size: 32px; color: var(--accent); margin-bottom: 32px;">哨</div>
+      <h2 class="slide-title" style="margin-bottom: 16px;">The future of pest control is <em>autonomous.</em></h2>
+      <p class="slide-body" style="margin: 0 auto 40px; text-align: center; max-width: 560px;">Sentinel Robotics is building the first kinetic autonomous system capable of solving &mdash; not managing &mdash; the invasive species crisis. The hardware is designed. The market is proven. The data moat starts on day one.</p>
+      <div style="width: 60px; height: 1px; background: var(--accent); margin: 0 auto 40px;"></div>
+      <div style="margin-bottom: 8px;">
+        <span style="font-family: 'Barlow Condensed', sans-serif; font-weight: 400; font-size: 16px; letter-spacing: 4px; color: var(--fg);">ROB SWATTON</span>
+      </div>
+      <div style="font-family: 'Barlow Condensed', sans-serif; font-weight: 300; font-size: 11px; letter-spacing: 4px; text-transform: uppercase; color: var(--fg3); margin-bottom: 4px;">Principal Developer — Project Sentinel</div>
+      <a href="mailto:rob@sentinelrobotics.com" style="font-family: 'Barlow Condensed', sans-serif; font-weight: 300; font-size: 12px; letter-spacing: 2px; color: var(--accent); text-decoration: none;">rob@sentinelrobotics.com</a>
+      <div style="margin-top: 48px;">
+        <div style="font-family: 'Noto Sans JP', sans-serif; font-weight: 100; font-size: 24px; color: rgba(255,255,255,0.06); letter-spacing: 8px;">自律型防衛システム</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="kb-hint">
+  <kbd>&larr;</kbd> <kbd>&rarr;</kbd> navigate &nbsp;&middot;&nbsp; <kbd>ESC</kbd> exit
+</div>
+
+<script src="../js/auth.js"></script>
+<script>
+// Auth check
+if (!isAuthenticated()) {
+  window.location.href = '../gate.html';
+}
+
+// Slide state
+const SLIDE_LABELS = ['Title','Problem','Species','System','Data','Service','US Map','Texas 3D','Growth','Timeline','The Round','Close'];
+let currentSlide = 0;
+const totalSlides = document.querySelectorAll('.slide').length;
+const slides = document.querySelectorAll('.slide');
+
+// Build progress dots
+const progressEl = document.getElementById('deckProgress');
+SLIDE_LABELS.forEach((label, i) => {
+  const dot = document.createElement('div');
+  dot.className = 'deck-dot' + (i === 0 ? ' active' : '');
+  dot.dataset.label = label;
+  dot.addEventListener('click', () => goToSlide(i));
+  progressEl.appendChild(dot);
+});
+
+function updateUI() {
+  const counter = document.getElementById('deckCounter');
+  counter.textContent = String(currentSlide + 1).padStart(2, '0') + ' / ' + String(totalSlides).padStart(2, '0');
+
+  document.getElementById('btnPrev').disabled = currentSlide === 0;
+  document.getElementById('btnNext').disabled = currentSlide === totalSlides - 1;
+
+  // Update dots
+  document.querySelectorAll('.deck-dot').forEach((dot, i) => {
+    dot.classList.remove('active');
+    if (i === currentSlide) dot.classList.add('active');
+    if (i < currentSlide) dot.classList.add('visited');
+  });
+}
+
+function goToSlide(index) {
+  if (index === currentSlide || index < 0 || index >= totalSlides) return;
+
+  const direction = index > currentSlide ? 1 : -1;
+  const current = slides[currentSlide];
+  const next = slides[index];
+
+  // Exit current
+  current.classList.remove('active');
+  current.classList.add(direction > 0 ? 'exit-left' : '');
+  current.style.transform = direction > 0 ? 'translateX(-60px)' : 'translateX(60px)';
+  current.style.opacity = '0';
+
+  // Enter next
+  next.style.transform = direction > 0 ? 'translateX(60px)' : 'translateX(-60px)';
+  next.style.opacity = '0';
+
+  requestAnimationFrame(() => {
+    next.classList.add('active');
+    next.classList.remove('exit-left');
+    // Reset scroll position for scrollable slides
+    next.scrollTop = 0;
+  });
+
+  // Clean up old slide after transition
+  setTimeout(() => {
+    current.classList.remove('exit-left');
+    current.style.transform = '';
+    current.style.opacity = '';
+  }, 500);
+
+  currentSlide = index;
+  updateUI();
+}
+
+function nextSlide() { goToSlide(currentSlide + 1); }
+function prevSlide() { goToSlide(currentSlide - 1); }
+
+// Controls
+document.getElementById('btnNext').addEventListener('click', nextSlide);
+document.getElementById('btnPrev').addEventListener('click', prevSlide);
+document.getElementById('deckLogout').addEventListener('click', (e) => {
+  e.preventDefault();
+  logout();
+});
+
+// Keyboard navigation
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); nextSlide(); }
+  if (e.key === 'ArrowLeft') { e.preventDefault(); prevSlide(); }
+  if (e.key === 'Escape') { window.location.href = '../index.html'; }
+});
+
+// Touch swipe
+let touchStartX = 0;
+document.addEventListener('touchstart', (e) => { touchStartX = e.touches[0].clientX; });
+document.addEventListener('touchend', (e) => {
+  const dx = e.changedTouches[0].clientX - touchStartX;
+  if (Math.abs(dx) > 50) {
+    dx < 0 ? nextSlide() : prevSlide();
+  }
+});
+
+updateUI();
+</script>
+</body>
+</html>

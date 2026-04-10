@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project Sentinel — Texas Feral Hog Density Model</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@100;200;300;400;500;600;700&family=Barlow+Condensed:wght@100;200;300;400;500;600;700&family=Noto+Sans+JP:wght@100;300;500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
+<style>
+:root{--bg:#0b1210;--bg2:#111f1a;--bg3:#182a23;--fg:#e2e8e4;--fg2:#8a9e90;--fg3:#4e6355;--accent:#c4402a;--accent2:#e8593c;--rule:rgba(200,230,210,0.06);--rule2:rgba(200,230,210,0.12)}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--fg);font-family:'Barlow',sans-serif;-webkit-font-smoothing:antialiased;overflow:hidden;height:100vh}
+.top-banner{display:flex;align-items:center;justify-content:center;gap:20px;background:var(--bg2);border-bottom:1px solid var(--rule2);padding:6px 20px;position:relative;z-index:10}
+.top-banner .label{font-family:'Barlow Condensed',sans-serif;font-weight:300;font-size:10px;letter-spacing:5px;text-transform:uppercase;color:var(--fg3)}
+.top-banner .jp{font-family:'Noto Sans JP',sans-serif;font-weight:100;font-size:10px;color:var(--fg3);letter-spacing:2px}
+.top-banner .accent-dot{width:4px;height:4px;background:var(--accent);border-radius:50%}
+.header{display:flex;align-items:center;justify-content:space-between;padding:12px 28px;border-bottom:1px solid var(--rule2);position:relative;z-index:10;background:var(--bg)}
+.header-logo{display:flex;align-items:center;gap:12px}
+.header-logo .mark{width:28px;height:28px;border:1px solid var(--accent);display:flex;align-items:center;justify-content:center;font-family:'Noto Sans JP',sans-serif;font-weight:700;font-size:12px;color:var(--accent)}
+.header-logo .wordmark{font-family:'Barlow',sans-serif;font-weight:200;font-size:16px;letter-spacing:8px;text-transform:uppercase;color:var(--fg)}
+.header-title{font-family:'Barlow Condensed',sans-serif;font-weight:300;font-size:11px;letter-spacing:5px;text-transform:uppercase;color:var(--fg3)}
+#canvas-wrap{position:relative;width:100%;height:calc(100vh - 82px)}
+canvas{display:block;width:100%;height:100%}
+.overlay{position:absolute;z-index:10;pointer-events:none}
+.overlay *{pointer-events:auto}
+.year-display{top:20px;left:28px}
+.year-display .yr{font-family:'Barlow',sans-serif;font-weight:200;font-size:64px;letter-spacing:6px;color:var(--fg);line-height:1}
+.year-display .yr .acc{color:var(--accent)}
+.year-display .sub{font-family:'Barlow Condensed',sans-serif;font-weight:300;font-size:10px;letter-spacing:5px;text-transform:uppercase;color:var(--fg3);margin-top:2px}
+.stats-overlay{top:20px;right:28px;display:flex;flex-direction:column;gap:6px;align-items:flex-end}
+.so-row{display:flex;align-items:baseline;gap:8px}
+.so-val{font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:18px;letter-spacing:1px;color:var(--fg)}
+.so-val.red{color:var(--accent)}
+.so-lbl{font-family:'Barlow Condensed',sans-serif;font-weight:300;font-size:9px;letter-spacing:4px;text-transform:uppercase;color:var(--fg3)}
+.timeline-overlay{bottom:20px;left:28px;right:28px}
+.play-row{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+.btn-play{background:var(--bg2);border:1px solid var(--accent);color:var(--accent2);font-family:'Barlow Condensed',sans-serif;font-weight:400;font-size:11px;letter-spacing:3px;text-transform:uppercase;padding:5px 16px;cursor:pointer;transition:all .2s}
+.btn-play:hover{background:var(--accent);color:var(--fg)}
+.play-info{font-family:'Barlow Condensed',sans-serif;font-weight:300;font-size:10px;color:var(--fg3);letter-spacing:3px}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:3px;background:rgba(200,230,210,0.15);border-radius:0;outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--accent);border:2px solid var(--bg);box-shadow:0 0 10px rgba(196,64,42,.4);cursor:grab}
+input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--accent);border:2px solid var(--bg);box-shadow:0 0 10px rgba(196,64,42,.4);cursor:grab}
+.tick-labels{display:flex;justify-content:space-between;font-family:'Barlow Condensed',sans-serif;font-weight:300;font-size:8px;color:var(--fg3);letter-spacing:1px;padding-top:3px}
+.legend-overlay{bottom:100px;right:28px;background:rgba(11,18,16,0.85);border:1px solid var(--rule2);padding:12px 16px}
+.legend-title{font-family:'Barlow Condensed',sans-serif;font-weight:300;font-size:9px;letter-spacing:4px;text-transform:uppercase;color:var(--fg3);margin-bottom:8px}
+.legend-bar{display:flex;gap:1px;margin-bottom:4px}
+.legend-bar div{width:18px;height:8px}
+.legend-labels{display:flex;gap:1px}
+.legend-labels span{width:18px;font-family:'Barlow Condensed',sans-serif;font-weight:300;font-size:7px;color:var(--fg3);text-align:center}
+.source-tag{bottom:100px;left:28px;font-family:'Barlow Condensed',sans-serif;font-weight:300;font-size:8px;letter-spacing:3px;text-transform:uppercase;color:var(--fg3);line-height:1.8}
+.source-tag .jp{font-family:'Noto Sans JP',sans-serif;font-weight:100;font-size:8px;color:var(--accent2);letter-spacing:1px}
+.loading-screen{position:absolute;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100}
+.btn-cam{background:rgba(11,18,16,0.8);border:1px solid var(--rule2);color:var(--fg3);font-family:'Barlow Condensed',sans-serif;font-weight:300;font-size:9px;letter-spacing:3px;text-transform:uppercase;padding:4px 12px;cursor:pointer;transition:all .2s}
+.btn-cam:hover{border-color:var(--accent);color:var(--accent2)}
+.btn-cam.active{border-color:var(--accent);color:var(--accent)}
+.loading-screen .ld-text{font-family:'Barlow Condensed',sans-serif;font-weight:300;font-size:12px;letter-spacing:5px;text-transform:uppercase;color:var(--fg3)}
+.loading-screen .ld-bar{width:200px;height:2px;background:var(--bg3);margin-top:12px;overflow:hidden}
+.loading-screen .ld-fill{height:100%;background:var(--accent);width:0%;transition:width 0.3s}
+</style>
+</head>
+<body>
+<div class="top-banner"><span class="accent-dot"></span><span class="label">Project Sentinel — Texas Density Model</span><span class="jp">個体密度モデル</span><span class="accent-dot"></span></div>
+<div class="header">
+  <div class="header-logo"><div class="mark">哨</div><div class="wordmark">Sentinel</div></div>
+  <div class="header-title">Feral Hog Propagation Model — Texas 1982–2024</div>
+</div>
+<div id="canvas-wrap">
+  <div class="loading-screen" id="loadScreen"><div class="ld-text">Generating propagation model...</div><div class="ld-bar"><div class="ld-fill" id="ldFill"></div></div></div>
+  <div class="overlay year-display"><div class="yr" id="yrDisp">19<span class="acc">82</span></div><div class="sub">Assessment Year</div></div>
+  <div class="overlay stats-overlay">
+    <div class="so-row"><span class="so-val" id="soPopTx">~150K</span><span class="so-lbl">Texas Population</span></div>
+    <div class="so-row"><span class="so-val red" id="soDmgTx">$5M</span><span class="so-lbl">Annual Damage</span></div>
+    <div class="so-row"><span class="so-val" id="soCov">32%</span><span class="so-lbl">Territory Covered</span></div>
+  </div>
+  <div class="overlay legend-overlay">
+    <div class="legend-title">Hogs / Sq Mile</div>
+    <div class="legend-bar" id="legBar"></div>
+    <div class="legend-labels" id="legLabels"></div>
+  </div>
+  <div class="overlay source-tag">
+    <span class="jp">センチネル・ロボティクス</span><br>
+    Propagation model: seed zones + wavefront<br>
+    Sources: Texas A&M NRI · SCWDS · TPWD<br>
+    © 2026 Sentinel Robotics
+  </div>
+  <div class="overlay" style="top:20px;left:50%;transform:translateX(-50%);display:flex;gap:6px">
+    <button class="btn-cam" id="btnOrbit">Auto-Orbit: ON</button>
+    <button class="btn-cam" id="btnReset">Reset View</button>
+  </div>
+  <div class="overlay timeline-overlay">
+    <div class="play-row">
+      <button class="btn-play" id="btnPlay">▶ Play Spread</button>
+      <span class="play-info">1982 — 2024</span>
+    </div>
+    <input type="range" id="slider" min="0" max="19" value="0" step="1">
+    <div class="tick-labels" id="tickLabels"></div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// TIMELINE
+// ═══════════════════════════════════════════════════════
+const YEARS=[1982,1988,2004,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021,2022,2023,2024];
+const TX_POP_2024=2600000, TX_DMG_2024=871;
+
+// ═══════════════════════════════════════════════════════
+// SEED ZONES — historical origin populations pre-1982
+// Each seed has: center lon/lat, initial radius (degrees),
+// intensity (relative density), and a spread rate modifier
+// ═══════════════════════════════════════════════════════
+const SEEDS = [
+  // East Texas Pineywoods — oldest, densest populations
+  { lon:-94.5, lat:31.5, r0:1.8, intensity:1.0, spreadMod:1.0 },
+  { lon:-94.0, lat:30.5, r0:1.5, intensity:0.95, spreadMod:1.0 },
+  { lon:-95.0, lat:32.5, r0:1.2, intensity:0.85, spreadMod:0.9 },
+  // Gulf Coast
+  { lon:-96.0, lat:28.8, r0:1.3, intensity:0.80, spreadMod:0.9 },
+  { lon:-95.5, lat:29.5, r0:1.0, intensity:0.75, spreadMod:0.85 },
+  // South Texas brush country
+  { lon:-98.5, lat:27.5, r0:1.5, intensity:0.75, spreadMod:0.8 },
+  { lon:-99.5, lat:28.5, r0:1.2, intensity:0.65, spreadMod:0.7 },
+  // Rio Grande corridor
+  { lon:-100.5, lat:29.0, r0:0.8, intensity:0.50, spreadMod:0.6 },
+  // Central Texas (scattered ranch escapes)
+  { lon:-97.5, lat:30.5, r0:0.6, intensity:0.40, spreadMod:0.7 },
+  { lon:-97.0, lat:31.5, r0:0.5, intensity:0.35, spreadMod:0.7 },
+  // 1930s Russian boar releases — game ranches in Hill Country
+  { lon:-98.5, lat:30.0, r0:0.7, intensity:0.45, spreadMod:0.65 },
+  // Secondary seed: human translocations (emerge ~2000+)
+  { lon:-99.0, lat:33.5, r0:0.3, intensity:0.30, spreadMod:0.5, delayYears:18 },  // Cross Timbers
+  { lon:-101.0, lat:32.0, r0:0.3, intensity:0.25, spreadMod:0.4, delayYears:22 }, // Rolling Plains
+  { lon:-101.5, lat:34.5, r0:0.2, intensity:0.15, spreadMod:0.3, delayYears:26 }, // Panhandle edge
+  { lon:-104.0, lat:30.5, r0:0.3, intensity:0.20, spreadMod:0.3, delayYears:24 }, // Trans-Pecos (Davis Mtns)
+];
+
+// ═══════════════════════════════════════════════════════
+// HABITAT SUITABILITY — modulates density ceiling
+// ═══════════════════════════════════════════════════════
+function habitatSuitability(lon, lat) {
+  // El Paso — zero
+  if (lon < -105.9 && lat > 31.0 && lat < 32.5) return 0;
+  // Rainfall gradient (east=high, west=low)
+  const rain = Math.pow(Math.max(0, Math.min(1, (lon - (-106.65)) / ((-93.5) - (-106.65)))), 0.65);
+  // Ecoregion base
+  let eco = 0.3;
+  if (lon >= -95.0) eco = 1.0;                                    // Pineywoods
+  else if (lon >= -96.5 && lon < -95.0 && lat < 33.0) eco = 0.8;  // Post Oak
+  else if (lat < 30.0 && lon > -97.0) eco = 0.75;                 // Gulf Coast
+  else if (lat < 28.5) eco = 0.65;                                // Deep South TX
+  else if (lat < 29.5 && lon < -99.0) eco = 0.55;                 // South TX Plains
+  else if (lon < -101.5 && lat > 33.5) eco = 0.1;                 // High Plains
+  else if (lon < -103.5) eco = 0.12;                               // Trans-Pecos
+  else if (lon >= -99.0 && lon < -97.0 && lat > 32.5) eco = 0.5;  // Cross Timbers
+  else if (lat > 29.5 && lat < 32.0 && lon < -98.5) eco = 0.4;   // Edwards Plateau
+  else if (lat > 32.0 && lon < -99.0 && lon >= -103.5) eco = 0.25; // Rolling Plains
+
+  // River proximity boost
+  const riv = riverBoost(lon, lat);
+
+  // Urban suppression
+  const urb = urbanFactor(lon, lat);
+
+  return Math.min(1.0, (eco * 0.5 + rain * 0.3 + riv * 0.2)) * urb;
+}
+
+const RIVERS = [
+  [[-106.5,31.8],[-104.8,29.5],[-101.5,28.0],[-99.5,27.0],[-97.5,26.0]],
+  [[-100.5,32.5],[-99.0,31.5],[-97.5,30.3],[-96.5,29.5],[-95.8,28.8]],
+  [[-100.0,33.5],[-98.5,32.0],[-97.0,31.5],[-96.5,30.5],[-95.5,29.0]],
+  [[-97.0,33.5],[-96.5,32.5],[-95.5,31.0],[-95.0,30.0],[-94.8,29.5]],
+  [[-96.0,33.5],[-95.0,32.0],[-94.0,31.0],[-93.8,30.0]],
+  [[-95.5,32.5],[-95.0,31.5],[-94.5,30.5],[-94.2,30.0]],
+  [[-103.0,36.5],[-100.0,34.5],[-97.0,33.8],[-95.0,33.7],[-94.0,33.5]],
+  [[-100.5,30.0],[-99.5,29.0],[-98.0,28.0],[-97.5,27.5]],
+  [[-99.5,30.5],[-98.5,29.8],[-97.5,29.0],[-97.0,28.5]],
+  [[-98.8,29.8],[-98.4,29.4],[-97.8,28.5],[-97.2,28.0]],
+];
+
+function riverBoost(lon, lat) {
+  let minD = Infinity;
+  for (const r of RIVERS) {
+    for (let i = 0; i < r.length-1; i++) {
+      const d = ptSegDist(lon,lat,r[i][0],r[i][1],r[i+1][0],r[i+1][1]);
+      if (d < minD) minD = d;
+    }
+  }
+  if (minD < 0.08) return 1.0;
+  if (minD < 0.18) return 0.7;
+  if (minD < 0.35) return 0.4;
+  if (minD < 0.55) return 0.15;
+  return 0;
+}
+
+function ptSegDist(px,py,ax,ay,bx,by){const dx=bx-ax,dy=by-ay,l2=dx*dx+dy*dy;if(!l2)return Math.hypot(px-ax,py-ay);let t=((px-ax)*dx+(py-ay)*dy)/l2;t=Math.max(0,Math.min(1,t));return Math.hypot(px-(ax+t*dx),py-(ay+t*dy))}
+
+const METROS=[{lon:-95.37,lat:29.76,r:.5},{lon:-96.80,lat:32.78,r:.45},{lon:-97.33,lat:32.75,r:.3},{lon:-98.49,lat:29.42,r:.4},{lon:-97.74,lat:30.27,r:.3},{lon:-106.44,lat:31.76,r:.35},{lon:-97.40,lat:27.80,r:.2}];
+function urbanFactor(lon,lat){for(const m of METROS){const d=Math.hypot(lon-m.lon,lat-m.lat);if(d<m.r*0.3)return 0.05;if(d<m.r*0.6)return 0.3;if(d<m.r)return 0.6}return 1}
+
+// ═══════════════════════════════════════════════════════
+// PROPAGATION MODEL
+// For each grid point, compute density at a given year
+// based on distance from nearest active seed zone and
+// that seed's wavefront expansion over time
+// ═══════════════════════════════════════════════════════
+
+function propagatedDensity(lon, lat, yearIndex) {
+  const year = YEARS[yearIndex];
+  const elapsed = year - 1982;
+
+  // Expansion rate: ~0.15 degrees/year (~10 miles/year) along suitable corridors
+  // Accelerating over time (documented 4→7.8 mi/yr)
+  const baseRate = 0.12 + elapsed * 0.003;
+
+  let maxContrib = 0;
+
+  for (const seed of SEEDS) {
+    // Delayed seeds don't activate until their year
+    const delay = seed.delayYears || 0;
+    const seedElapsed = elapsed - delay;
+    if (seedElapsed < 0) continue;
+
+    // Wavefront radius at this year
+    const waveR = seed.r0 + seedElapsed * baseRate * seed.spreadMod;
+
+    // Distance from this point to seed center
+    const dist = Math.hypot(lon - seed.lon, lat - seed.lat);
+
+    if (dist > waveR) continue; // outside wavefront
+
+    // Density falls off with distance from seed center
+    // Core is densest, edge of wavefront is sparse
+    const penetration = 1.0 - (dist / waveR);
+    // Non-linear falloff — dense core, thin edge
+    const falloff = Math.pow(penetration, 0.6);
+
+    // Local density contribution from this seed
+    // Grows with time as population multiplies in occupied territory
+    const maturity = Math.min(1.0, seedElapsed / 30); // 30 years to full density
+    const contrib = seed.intensity * falloff * (0.15 + 0.85 * maturity);
+
+    if (contrib > maxContrib) maxContrib = contrib;
+  }
+
+  // Modulate by habitat suitability
+  const habitat = habitatSuitability(lon, lat);
+  return Math.min(1.0, maxContrib * habitat);
+}
+
+// ═══════════════════════════════════════════════════════
+// POINT-IN-POLYGON
+// ═══════════════════════════════════════════════════════
+function pip(x,y,poly){let inside=false;for(let i=0,j=poly.length-1;i<poly.length;j=i++){const xi=poly[i][0],yi=poly[i][1],xj=poly[j][0],yj=poly[j][1];if((yi>y)!==(yj>y)&&x<(xj-xi)*(y-yi)/(yj-yi)+xi)inside=!inside}return inside}
+
+// ═══════════════════════════════════════════════════════
+// THREE.JS SCENE
+// ═══════════════════════════════════════════════════════
+let scene,camera,renderer,spikeMeshes=[],gridPts=[];
+
+function densityColor(d){
+  if(d>=.90)return new THREE.Color(0xa8281a);
+  if(d>=.80)return new THREE.Color(0xc4402a);
+  if(d>=.70)return new THREE.Color(0xc4552a);
+  if(d>=.60)return new THREE.Color(0xc46a2a);
+  if(d>=.50)return new THREE.Color(0xc4872a);
+  if(d>=.42)return new THREE.Color(0xb89a2a);
+  if(d>=.35)return new THREE.Color(0x8a7a2a);
+  if(d>=.28)return new THREE.Color(0x6a7a32);
+  if(d>=.22)return new THREE.Color(0x4a6a42);
+  if(d>=.16)return new THREE.Color(0x3d6a52);
+  if(d>=.10)return new THREE.Color(0x2a5040);
+  if(d>=.06)return new THREE.Color(0x1e3a2e);
+  if(d>=.03)return new THREE.Color(0x1a3028);
+  return new THREE.Color(0x162420);
+}
+
+async function init(){
+  const ldFill=document.getElementById('ldFill');
+  ldFill.style.width='10%';
+
+  const topo=await d3.json('https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json');
+  const states=topojson.feature(topo,topo.objects.states);
+  const tx=states.features.find(f=>f.id==='48');
+  const outerRing=tx.geometry.coordinates[0];
+
+  ldFill.style.width='25%';
+
+  const wrap=document.getElementById('canvas-wrap');
+  const W=wrap.clientWidth, H=wrap.clientHeight;
+
+  scene=new THREE.Scene();
+  scene.background=new THREE.Color(0x0b1210);
+  scene.fog=new THREE.FogExp2(0x0b1210,0.007);
+
+  camera=new THREE.PerspectiveCamera(45,W/H,0.1,1000);
+  camera.position.set(0,55,45);
+  camera.lookAt(0,0,-5);
+
+  renderer=new THREE.WebGLRenderer({antialias:true});
+  renderer.setSize(W,H);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+  wrap.appendChild(renderer.domElement);
+
+  scene.add(new THREE.AmbientLight(0x1e3a2e,0.6));
+  const dl1=new THREE.DirectionalLight(0xe2e8e4,0.8);dl1.position.set(20,40,30);scene.add(dl1);
+  const dl2=new THREE.DirectionalLight(0xc4402a,0.3);dl2.position.set(-20,30,-10);scene.add(dl2);
+
+  ldFill.style.width='35%';
+
+  const lonMin=-106.65,lonMax=-93.52,latMin=25.84,latMax=36.50;
+  const lonMid=(lonMin+lonMax)/2,latMid=(latMin+latMax)/2;
+  const sc=3.0;
+  function toXZ(lon,lat){return[(lon-lonMid)*sc*Math.cos(latMid*Math.PI/180),-(lat-latMid)*sc]}
+
+  // Base mesh — build directly in XZ plane using ExtrudeGeometry with depth 0
+  // ShapeGeometry works in XY, so we use toXZ but map to x,y for shape, then rotate
+  // The issue: toXZ negates lat for z, but Shape expects y-up. So we negate z back for shape coords.
+  const shape=new THREE.Shape();
+  for(let i=0;i<outerRing.length;i++){
+    const[x,z]=toXZ(outerRing[i][0],outerRing[i][1]);
+    i===0?shape.moveTo(x,-z):shape.lineTo(x,-z);
+  }
+  const baseGeo=new THREE.ShapeGeometry(shape);
+  const baseMat=new THREE.MeshStandardMaterial({color:0x111f1a,roughness:0.9,metalness:0.1,transparent:true,opacity:0.9});
+  const base=new THREE.Mesh(baseGeo,baseMat);
+  base.rotation.x=-Math.PI/2;base.position.y=-0.05;scene.add(base);
+
+  // Outline
+  const olPts=outerRing.map(p=>{const[x,z]=toXZ(p[0],p[1]);return new THREE.Vector3(x,0,z)});
+  scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(olPts),new THREE.LineBasicMaterial({color:0x2a5040})));
+
+  ldFill.style.width='50%';
+
+  // Generate grid points — 0.13° spacing reduces visual overlap at oblique angles
+  const GRID_RES=0.13;
+  gridPts=[];
+  for(let lon=lonMin;lon<=lonMax;lon+=GRID_RES){
+    for(let lat=latMin;lat<=latMax;lat+=GRID_RES){
+      if(pip(lon,lat,outerRing)){
+        gridPts.push({lon,lat});
+      }
+    }
+  }
+
+  ldFill.style.width='65%';
+
+  // Create spike meshes — 6-sided, opaque materials to eliminate z-fighting moiré
+  const spikeGeo=new THREE.CylinderGeometry(0.06,0.08,1,6);
+  spikeGeo.translate(0,0.5,0);
+
+  // Pre-compute initial densities and create meshes
+  for(const pt of gridPts){
+    const[x,z]=toXZ(pt.lon,pt.lat);
+    const mat=new THREE.MeshStandardMaterial({color:0x162420,roughness:0.6,metalness:0.2,emissive:new THREE.Color(0x162420),emissiveIntensity:0.12});
+    const mesh=new THREE.Mesh(spikeGeo,mat);
+    mesh.position.set(x,0,z);
+    mesh.scale.y=0.001;
+    mesh.userData={lon:pt.lon,lat:pt.lat};
+    scene.add(mesh);
+    spikeMeshes.push(mesh);
+  }
+
+  ldFill.style.width='90%';
+
+  updateSpikes(0);
+
+  ldFill.style.width='100%';
+  setTimeout(()=>document.getElementById('loadScreen').style.display='none',400);
+
+  // Resize
+  window.addEventListener('resize',()=>{const w=wrap.clientWidth,h=wrap.clientHeight;camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h)});
+
+  // ── Camera orbit system ──
+  const CAM_DEFAULT={theta:0,phi:0.85,dist:65,targetX:0,targetY:0,targetZ:-5};
+  let camTheta=CAM_DEFAULT.theta, camPhi=CAM_DEFAULT.phi, camDist=CAM_DEFAULT.dist;
+  let autoOrbit=true, dragMode=0, prevX=0, prevY=0; // dragMode: 0=none, 1=orbit, 2=pan
+  const lookTarget=new THREE.Vector3(CAM_DEFAULT.targetX,CAM_DEFAULT.targetY,CAM_DEFAULT.targetZ);
+
+  function updateCam(){
+    camera.position.x=lookTarget.x+camDist*Math.sin(camPhi)*Math.sin(camTheta);
+    camera.position.y=lookTarget.y+camDist*Math.cos(camPhi);
+    camera.position.z=lookTarget.z+camDist*Math.sin(camPhi)*Math.cos(camTheta);
+    camera.lookAt(lookTarget);
+  }
+  updateCam();
+
+  renderer.domElement.addEventListener('contextmenu',e=>e.preventDefault());
+
+  renderer.domElement.addEventListener('mousedown',e=>{
+    prevX=e.clientX;prevY=e.clientY;
+    if(e.button===1||e.button===2){dragMode=2} // middle or right = pan
+    else{dragMode=1} // left = orbit
+  });
+  renderer.domElement.addEventListener('mousemove',e=>{
+    if(!dragMode)return;
+    const dx=e.clientX-prevX, dy=e.clientY-prevY;
+    prevX=e.clientX; prevY=e.clientY;
+
+    if(dragMode===1){
+      // Orbit
+      camTheta+=dx*0.005;
+      camPhi=Math.max(0.2,Math.min(1.5,camPhi+dy*0.005));
+    } else if(dragMode===2){
+      // Pan — move lookTarget in camera-relative XZ plane
+      const panSpeed=camDist*0.0008;
+      const sinT=Math.sin(camTheta), cosT=Math.cos(camTheta);
+      // Right vector (perpendicular to camera direction in XZ)
+      lookTarget.x-=dx*panSpeed*cosT;
+      lookTarget.z+=dx*panSpeed*sinT;
+      // Up/down maps to forward/back in the view
+      lookTarget.x+=dy*panSpeed*sinT;
+      lookTarget.z+=dy*panSpeed*cosT;
+    }
+    updateCam();
+  });
+  renderer.domElement.addEventListener('mouseup',()=>dragMode=0);
+  renderer.domElement.addEventListener('mouseleave',()=>dragMode=0);
+  renderer.domElement.addEventListener('wheel',e=>{
+    e.preventDefault();
+    camDist=Math.max(20,Math.min(120,camDist+e.deltaY*0.05));
+    updateCam();
+  },{passive:false});
+
+  // Auto-orbit toggle
+  const btnOrbit=document.getElementById('btnOrbit');
+  btnOrbit.classList.add('active');
+  btnOrbit.addEventListener('click',()=>{
+    autoOrbit=!autoOrbit;
+    btnOrbit.textContent='Auto-Orbit: '+(autoOrbit?'ON':'OFF');
+    autoOrbit?btnOrbit.classList.add('active'):btnOrbit.classList.remove('active');
+  });
+
+  // Reset view — resets orbit, zoom, AND pan target
+  document.getElementById('btnReset').addEventListener('click',()=>{
+    camTheta=CAM_DEFAULT.theta;camPhi=CAM_DEFAULT.phi;camDist=CAM_DEFAULT.dist;
+    lookTarget.set(CAM_DEFAULT.targetX,CAM_DEFAULT.targetY,CAM_DEFAULT.targetZ);
+    updateCam();
+  });
+
+  // Animate
+  (function animate(){
+    requestAnimationFrame(animate);
+    if(autoOrbit&&!dragMode){camTheta+=0.0008;updateCam()}
+    renderer.render(scene,camera);
+  })();
+}
+
+function updateSpikes(yearIndex){
+  const yr=YEARS[yearIndex];
+  let activeCount=0, totalPoints=spikeMeshes.length;
+
+  for(const mesh of spikeMeshes){
+    const d=propagatedDensity(mesh.userData.lon,mesh.userData.lat,yearIndex);
+    const h=d*5.5;
+    mesh.scale.y=Math.max(0.001,h);
+
+    // Update color
+    const col=densityColor(d);
+    mesh.material.color.copy(col);
+    mesh.material.emissive.copy(col);
+
+    // Visibility — hide if essentially zero
+    mesh.visible=d>0.005;
+    if(d>0.02)activeCount++;
+  }
+
+  // Update UI
+  const ys=String(yr);
+  document.getElementById('yrDisp').innerHTML=ys.slice(0,-2)+'<span class="acc">'+ys.slice(-2)+'</span>';
+
+  // Estimate population: scale by coverage and growth
+  const coverageFrac=activeCount/totalPoints;
+  const elapsed=yr-1982;
+  const maturity=Math.min(1,elapsed/35);
+  const estPop=Math.round(TX_POP_2024*coverageFrac*maturity*(0.3+0.7*maturity));
+  document.getElementById('soPopTx').textContent=estPop>=1e6?(estPop/1e6).toFixed(1)+'M':estPop>=1e3?Math.round(estPop/1e3)+'K':''+estPop;
+
+  const estDmg=Math.round(TX_DMG_2024*coverageFrac*maturity*(0.3+0.7*maturity));
+  document.getElementById('soDmgTx').textContent='$'+estDmg+'M';
+
+  document.getElementById('soCov').textContent=Math.round(coverageFrac*100)+'%';
+}
+
+// ═══════════════════════════════════════════════════════
+// TIMELINE CONTROLS
+// ═══════════════════════════════════════════════════════
+let playing=false,playTimer=null;
+const slider=document.getElementById('slider');
+const TICK_SHOW=[1982,1988,2004,2008,2012,2016,2020,2024];
+document.getElementById('tickLabels').innerHTML=YEARS.map(y=>`<span style="opacity:${TICK_SHOW.includes(y)?1:0};width:${100/YEARS.length}%;text-align:center">${y}</span>`).join('');
+slider.addEventListener('input',()=>{updateSpikes(+slider.value);if(playing)stopPlay()});
+document.getElementById('btnPlay').addEventListener('click',()=>{playing?stopPlay():startPlay()});
+function startPlay(){playing=true;document.getElementById('btnPlay').textContent='⏸ PAUSE';if(+slider.value>=YEARS.length-1){slider.value=0;updateSpikes(0)}playTimer=setInterval(()=>{let v=+slider.value+1;if(v>=YEARS.length){stopPlay();return}slider.value=v;updateSpikes(v)},1200)}
+function stopPlay(){playing=false;document.getElementById('btnPlay').textContent='▶ PLAY SPREAD';clearInterval(playTimer);playTimer=null}
+
+// ═══════════════════════════════════════════════════════
+// LEGEND
+// ═══════════════════════════════════════════════════════
+(function(){
+  const items=[{c:'#162420',l:'0'},{c:'#1a3028',l:''},{c:'#1e3a2e',l:'2'},{c:'#2a5040',l:''},{c:'#3d6a52',l:'5'},{c:'#4a6a42',l:''},{c:'#6a7a32',l:'8'},{c:'#8a7a2a',l:''},{c:'#b89a2a',l:'10'},{c:'#c4872a',l:''},{c:'#c46a2a',l:'14'},{c:'#c4552a',l:''},{c:'#c4402a',l:'16'},{c:'#a8281a',l:'16+'}];
+  document.getElementById('legBar').innerHTML=items.map(i=>`<div style="background:${i.c}"></div>`).join('');
+  document.getElementById('legLabels').innerHTML=items.map(i=>`<span>${i.l}</span>`).join('');
+})();
+
+init();
+</script>
+</body>
+</html>

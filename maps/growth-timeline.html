@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sentinel Robotics — Growth Timeline</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@200;300;400;500;600&family=Barlow+Condensed:wght@300;400;600&family=Noto+Sans+JP:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --deep-carbon: #0b1210;
+    --forest-black: #111f1a;
+    --sentinel-red: #c4402a;
+    --sentinel-red-glow: rgba(196, 64, 42, 0.35);
+    --carbon-green-dim: #1a3329;
+    --carbon-green-mid: #2a5c47;
+    --carbon-green-light: #3d8b6e;
+    --text-primary: #d4ddd8;
+    --text-secondary: #7a9b8c;
+    --text-dim: #4a6b5c;
+    --rule-color: rgba(61, 139, 110, 0.2);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--deep-carbon);
+    color: var(--text-primary);
+    font-family: 'Barlow', sans-serif;
+    font-weight: 300;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      radial-gradient(circle at 20% 50%, rgba(42, 92, 71, 0.08) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, rgba(196, 64, 42, 0.04) 0%, transparent 40%);
+    pointer-events: none;
+  }
+
+  .layout {
+    position: relative;
+    z-index: 1;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 28px 48px 24px;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--rule-color);
+    flex-shrink: 0;
+  }
+
+  .header-left { display: flex; flex-direction: column; }
+
+  .header-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 600;
+    font-size: 10px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--sentinel-red);
+    margin-bottom: 4px;
+  }
+
+  .header-title {
+    font-family: 'Barlow', sans-serif;
+    font-weight: 200;
+    font-size: clamp(24px, 3.5vw, 40px);
+    line-height: 1.1;
+    color: var(--text-primary);
+  }
+
+  .header-title span { color: var(--sentinel-red); }
+
+  .header-right {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+  }
+
+  .header-sub {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 300;
+    font-size: 13px;
+    color: var(--text-secondary);
+    letter-spacing: 1px;
+  }
+
+  .header-kanji {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-weight: 300;
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+  }
+
+  .header-class {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 300;
+    font-size: 9px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--sentinel-red);
+    opacity: 0.5;
+  }
+
+  /* ── GRAPH AREA ── */
+  .graph-area {
+    flex: 1;
+    position: relative;
+    margin-top: 24px;
+    min-height: 0;
+  }
+
+  .graph-canvas {
+    position: absolute;
+    inset: 0;
+  }
+
+  /* Y-axis labels */
+  .y-axis {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 40px;
+    width: 72px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    pointer-events: none;
+  }
+
+  .y-tick {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 300;
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+    text-align: right;
+    padding-right: 12px;
+  }
+
+  .y-label {
+    position: absolute;
+    left: -26px;
+    top: 50%;
+    transform: rotate(-90deg) translateX(-50%);
+    transform-origin: center center;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 600;
+    font-size: 9px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    white-space: nowrap;
+  }
+
+  /* X-axis */
+  .x-axis {
+    position: absolute;
+    left: 72px;
+    right: 20px;
+    bottom: 0;
+    height: 40px;
+    display: flex;
+    align-items: flex-start;
+    padding-top: 10px;
+    border-top: 1px solid var(--rule-color);
+  }
+
+  .x-tick {
+    position: absolute;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 400;
+    font-size: 12px;
+    color: var(--text-secondary);
+    letter-spacing: 1px;
+    text-align: center;
+    transform: translateX(-50%);
+  }
+
+  /* Grid lines */
+  .grid-container {
+    position: absolute;
+    top: 0;
+    left: 72px;
+    right: 20px;
+    bottom: 40px;
+    overflow: visible;
+  }
+
+  .grid-line-h {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--rule-color);
+    opacity: 0.4;
+  }
+
+  .grid-line-v {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: var(--rule-color);
+    opacity: 0.25;
+  }
+
+  /* SVG container */
+  .graph-svg {
+    position: absolute;
+    top: 0;
+    left: 72px;
+    right: 20px;
+    bottom: 40px;
+  }
+
+  .graph-svg svg {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+
+  .gradient-area {
+    opacity: 0;
+    animation: areaFadeIn 2s ease 0.5s forwards;
+  }
+
+  @keyframes areaFadeIn { to { opacity: 1; } }
+
+  .growth-line {
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 2000;
+    stroke-dashoffset: 2000;
+    animation: drawLine 2.5s ease 0.3s forwards;
+  }
+
+  @keyframes drawLine { to { stroke-dashoffset: 0; } }
+
+  .node-group {
+    cursor: pointer;
+    opacity: 0;
+    animation: nodeIn 0.5s ease forwards;
+  }
+
+  .node-group:nth-of-type(1) { animation-delay: 1.0s; }
+  .node-group:nth-of-type(2) { animation-delay: 1.3s; }
+  .node-group:nth-of-type(3) { animation-delay: 1.6s; }
+  .node-group:nth-of-type(4) { animation-delay: 1.9s; }
+  .node-group:nth-of-type(5) { animation-delay: 2.2s; }
+
+  @keyframes nodeIn { to { opacity: 1; } }
+
+  .node-diamond-shape {
+    transition: all 0.3s ease;
+  }
+
+  .node-group:hover .node-diamond-shape,
+  .node-group.active .node-diamond-shape {
+    fill: var(--sentinel-red) !important;
+    stroke: var(--sentinel-red) !important;
+    filter: drop-shadow(0 0 12px rgba(196, 64, 42, 0.6));
+  }
+
+  .node-year-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 600;
+    font-size: 10px;
+    fill: var(--text-dim);
+    letter-spacing: 1px;
+    text-anchor: middle;
+    transition: fill 0.3s ease;
+  }
+
+  .node-group:hover .node-year-label,
+  .node-group.active .node-year-label {
+    fill: var(--sentinel-red);
+  }
+
+  .node-val-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 300;
+    font-size: 10px;
+    fill: var(--text-secondary);
+    text-anchor: middle;
+    transition: fill 0.3s ease;
+  }
+
+  .node-group:hover .node-val-label,
+  .node-group.active .node-val-label {
+    fill: var(--text-primary);
+  }
+
+  /* ── POPUP ── */
+  .popup {
+    position: absolute;
+    width: 380px;
+    background: var(--forest-black);
+    border: 1px solid var(--rule-color);
+    padding: 22px 24px;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    z-index: 50;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.5), 0 0 30px rgba(196, 64, 42, 0.05);
+  }
+
+  .popup.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .popup-phase {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 600;
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--sentinel-red);
+    margin-bottom: 6px;
+  }
+
+  .popup-title {
+    font-family: 'Barlow', sans-serif;
+    font-weight: 200;
+    font-size: 18px;
+    color: var(--text-primary);
+    margin-bottom: 12px;
+    line-height: 1.3;
+  }
+
+  .popup-body {
+    font-family: 'Barlow', sans-serif;
+    font-weight: 300;
+    font-size: 12.5px;
+    line-height: 1.7;
+    color: var(--text-secondary);
+    margin-bottom: 16px;
+  }
+
+  .popup-metrics {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    padding-top: 14px;
+    border-top: 1px solid var(--rule-color);
+  }
+
+  .popup-metric-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 300;
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 2px;
+  }
+
+  .popup-metric-value {
+    font-family: 'Barlow', sans-serif;
+    font-weight: 200;
+    font-size: 16px;
+    color: var(--text-primary);
+  }
+
+  .popup-metric-value .unit {
+    font-size: 11px;
+    color: var(--text-secondary);
+    font-weight: 300;
+  }
+
+  /* ── FOOTER ── */
+  .footer {
+    flex-shrink: 0;
+    padding-top: 12px;
+    border-top: 1px solid var(--rule-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+  }
+
+  .footer-brand {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 600;
+    font-size: 9px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+
+  .footer-kanji {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-weight: 300;
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+
+  /* ── SCANLINE ── */
+  .scanline {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--sentinel-red-glow), transparent);
+    opacity: 0.3;
+    animation: scanDown 10s linear infinite;
+    pointer-events: none;
+    z-index: 100;
+  }
+
+  @keyframes scanDown { 0% { top: -2px; } 100% { top: 100%; } }
+
+  /* ── MOBILE ── */
+  @media (max-width: 900px) {
+    body { overflow: auto; height: auto; }
+    .layout { height: auto; min-height: 100vh; padding: 20px 16px; }
+    .graph-area { min-height: 500px; }
+    .graph-canvas { height: 500px; }
+    .popup { width: 280px; }
+    .y-label { display: none; }
+    .y-axis { width: 50px; }
+    .graph-svg, .grid-container { left: 50px; }
+    .x-axis { left: 50px; }
+    .header { flex-direction: column; align-items: flex-start; gap: 8px; }
+    .header-right { text-align: left; align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<div class="scanline"></div>
+
+<div class="layout">
+
+  <div class="header">
+    <div class="header-left">
+      <div class="header-label">Sentinel Robotics</div>
+      <h1 class="header-title">Growth <span>Timeline</span></h1>
+    </div>
+    <div class="header-right">
+      <div class="header-sub">2026 — 2036 · Ten-Year Strategic Roadmap</div>
+      <div class="header-kanji">歩哨 · 成長経路</div>
+      <div class="header-class">Confidential — Investor Document</div>
+    </div>
+  </div>
+
+  <div class="graph-area">
+    <div class="graph-canvas">
+      <div class="y-label">Valuation</div>
+      <div class="y-axis" id="yAxis"></div>
+      <div class="grid-container" id="gridContainer"></div>
+      <div class="x-axis" id="xAxis"></div>
+      <div class="graph-svg" id="graphSvg"></div>
+    </div>
+    <div class="popup" id="popup">
+      <div class="popup-phase" id="popupPhase"></div>
+      <div class="popup-title" id="popupTitle"></div>
+      <div class="popup-body" id="popupBody"></div>
+      <div class="popup-metrics" id="popupMetrics"></div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="footer-brand">Sentinel Robotics</div>
+    <div class="footer-kanji">自律型防衛</div>
+  </div>
+
+</div>
+
+<script>
+const DATA = [
+  {
+    year: 2026, valB: 0.04, valLabel: '$40M',
+    phase: '2026', title: 'Seed · Prototype Lock',
+    body: 'Core effector targets TRL 7–8 in mud, rain, heat. AI pipeline begins logging real engagements. Seed round closes at $5–10M+. First 10–50 unit pilots on private and state land.',
+    metrics: [
+      { label: 'Units', value: '10–50', unit: 'pilots' },
+      { label: 'Team', value: '10–20', unit: '' },
+      { label: 'Funding', value: '$5–10M', unit: 'seed' },
+      { label: 'Valuation', value: '$40M', unit: 'post-money' },
+    ]
+  },
+  {
+    year: 2028, valB: 0.8, valLabel: '$800M',
+    phase: '2027–2029', title: 'National Pilot Contracts · $100M+ ARR',
+    body: 'Series A closes Q4 2027 ($20–40M) with ag/defense crossover capital. 500–2,000 units deployed under FSCP-style pilots and state programs. Subscription model proves 5–10x ROI vs trapping/poison. Data moat draws early DoD/prime interest in C-UAS robustness datasets. US manufacturing line stands up. Break-even on hardware; data licensing margins activate.',
+    metrics: [
+      { label: 'Revenue', value: '$100M+', unit: 'ARR' },
+      { label: 'Units', value: '1,500+', unit: 'deployed' },
+      { label: 'Headcount', value: '~100', unit: '' },
+      { label: 'Valuation', value: '$800M', unit: '' },
+    ]
+  },
+  {
+    year: 2031, valB: 6, valLabel: '$6B',
+    phase: '2029–2032', title: 'Category Dominance · Dual-Use Revenue Engine',
+    body: 'Full autonomy loop (detect-classify-neutralize-report) at scale. 5,000–15,000+ units across core ag/conservation acres. National USDA/APHIS biosecurity grid contracts. International allied interest under export controls. C-UAS training data licensing + derived low-cost kinetic platforms. Recurring revenue dwarfs hardware. Possible strategic JV or defense spin-off. Cash-flow positive.',
+    metrics: [
+      { label: 'Revenue', value: '$1B+', unit: 'ARR' },
+      { label: 'Units', value: '12,000+', unit: 'deployed' },
+      { label: 'Headcount', value: '~450', unit: '' },
+      { label: 'Valuation', value: '$6B', unit: '' },
+    ]
+  },
+  {
+    year: 2034, valB: 9, valLabel: '$9B',
+    phase: '2032–2035', title: 'National Infrastructure · Global Footprint',
+    body: 'Sentinel becomes the de-facto US biosecurity backbone. Millions of acres under coverage integrated into state/federal grids. Measurable ecological wins with documented damage reduction in the billions annually. Defense revenue rivals or exceeds pest-control. Controlled global footprint in allied nations. Advanced gens add swarming, modular effectors, hybrid human-AI oversight.',
+    metrics: [
+      { label: 'Coverage', value: 'Millions', unit: 'acres' },
+      { label: 'Defense Rev', value: 'Rivals', unit: 'ag revenue' },
+      { label: 'Global', value: 'Allied', unit: 'nations' },
+      { label: 'Valuation', value: '$9B', unit: '' },
+    ]
+  },
+  {
+    year: 2036, valB: 12, valLabel: '$12B',
+    phase: '2036', title: '20-Year End State',
+    body: 'Durable American manufacturing engine. Planetary-scale AI models fed by real kinetic biology data. Ethical kinetic replacement for broad-spectrum poisons plus the most robust combat AI training dataset on Earth. IPO or major acquisition interest from primes and big ag.',
+    metrics: [
+      { label: 'Valuation', value: '$12B', unit: '' },
+      { label: 'Exit', value: 'IPO', unit: '/ acquisition' },
+      { label: 'Data Moat', value: 'Planetary', unit: 'scale' },
+      { label: 'Legacy', value: 'Locked', unit: '' },
+    ]
+  },
+];
+
+const MIN_YEAR = 2025;
+const MAX_YEAR = 2037;
+const MAX_VAL = 14;
+const Y_TICKS = ['$12B', '$9B', '$6B', '$3B', '$0'];
+
+let activeNode = null;
+
+function buildGraph() {
+  const container = document.getElementById('graphSvg');
+  const gridContainer = document.getElementById('gridContainer');
+  const xAxisEl = document.getElementById('xAxis');
+  const yAxisEl = document.getElementById('yAxis');
+  const rect = container.getBoundingClientRect();
+  const W = rect.width;
+  const H = rect.height;
+
+  if (W === 0 || H === 0) return;
+
+  // Y axis
+  yAxisEl.innerHTML = Y_TICKS.map(t => `<div class="y-tick">${t}</div>`).join('');
+
+  // Grid
+  gridContainer.innerHTML = '';
+  for (let i = 0; i < Y_TICKS.length; i++) {
+    const line = document.createElement('div');
+    line.className = 'grid-line-h';
+    line.style.top = `${(i / (Y_TICKS.length - 1)) * 100}%`;
+    gridContainer.appendChild(line);
+  }
+  for (let yr = 2026; yr <= 2036; yr++) {
+    const pct = ((yr - MIN_YEAR) / (MAX_YEAR - MIN_YEAR)) * 100;
+    const line = document.createElement('div');
+    line.className = 'grid-line-v';
+    line.style.left = `${pct}%`;
+    gridContainer.appendChild(line);
+  }
+
+  // X axis
+  xAxisEl.innerHTML = '';
+  for (let yr = 2026; yr <= 2036; yr += 2) {
+    const tick = document.createElement('div');
+    tick.className = 'x-tick';
+    tick.textContent = yr;
+    const pct = ((yr - MIN_YEAR) / (MAX_YEAR - MIN_YEAR)) * 100;
+    tick.style.left = `${pct}%`;
+    xAxisEl.appendChild(tick);
+  }
+
+  function xPos(year) { return (year - MIN_YEAR) / (MAX_YEAR - MIN_YEAR) * W; }
+  function yPos(valB) { return H - (valB / MAX_VAL) * H; }
+
+  const curvePoints = [
+    { x: xPos(MIN_YEAR), y: yPos(0) },
+    ...DATA.map(d => ({ x: xPos(d.year), y: yPos(d.valB) }))
+  ];
+
+  function catmullRom(pts) {
+    if (pts.length < 2) return '';
+    let d = `M${pts[0].x},${pts[0].y}`;
+    for (let i = 0; i < pts.length - 1; i++) {
+      const p0 = pts[Math.max(i - 1, 0)];
+      const p1 = pts[i];
+      const p2 = pts[i + 1];
+      const p3 = pts[Math.min(i + 2, pts.length - 1)];
+      const cp1x = p1.x + (p2.x - p0.x) / 6;
+      const cp1y = p1.y + (p2.y - p0.y) / 6;
+      const cp2x = p2.x - (p3.x - p1.x) / 6;
+      const cp2y = p2.y - (p3.y - p1.y) / 6;
+      d += ` C${cp1x},${cp1y} ${cp2x},${cp2y} ${p2.x},${p2.y}`;
+    }
+    return d;
+  }
+
+  const linePath = catmullRom(curvePoints);
+  const last = curvePoints[curvePoints.length - 1];
+  const first = curvePoints[0];
+  const areaPath = linePath + ` L${last.x},${H} L${first.x},${H} Z`;
+
+  const svgNS = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(svgNS, 'svg');
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.setAttribute('preserveAspectRatio', 'none');
+
+  const defs = document.createElementNS(svgNS, 'defs');
+
+  // Area gradient
+  const grad = document.createElementNS(svgNS, 'linearGradient');
+  grad.setAttribute('id', 'areaGrad');
+  grad.setAttribute('x1', '0'); grad.setAttribute('y1', '1');
+  grad.setAttribute('x2', '0.6'); grad.setAttribute('y2', '0');
+  [
+    { offset: '0%', color: 'rgba(26,51,41,0.7)' },
+    { offset: '35%', color: 'rgba(42,92,71,0.4)' },
+    { offset: '65%', color: 'rgba(61,139,110,0.2)' },
+    { offset: '100%', color: 'rgba(196,64,42,0.15)' }
+  ].forEach(s => {
+    const stop = document.createElementNS(svgNS, 'stop');
+    stop.setAttribute('offset', s.offset);
+    stop.setAttribute('stop-color', s.color);
+    grad.appendChild(stop);
+  });
+  defs.appendChild(grad);
+
+  // Line gradient
+  const lineGrad = document.createElementNS(svgNS, 'linearGradient');
+  lineGrad.setAttribute('id', 'lineGrad');
+  lineGrad.setAttribute('x1', '0'); lineGrad.setAttribute('y1', '0');
+  lineGrad.setAttribute('x2', '1'); lineGrad.setAttribute('y2', '0');
+  [
+    { offset: '0%', color: '#1a3329' },
+    { offset: '25%', color: '#2a5c47' },
+    { offset: '55%', color: '#3d8b6e' },
+    { offset: '100%', color: '#c4402a' }
+  ].forEach(s => {
+    const stop = document.createElementNS(svgNS, 'stop');
+    stop.setAttribute('offset', s.offset);
+    stop.setAttribute('stop-color', s.color);
+    lineGrad.appendChild(stop);
+  });
+  defs.appendChild(lineGrad);
+
+  svg.appendChild(defs);
+
+  // Area
+  const area = document.createElementNS(svgNS, 'path');
+  area.setAttribute('d', areaPath);
+  area.setAttribute('fill', 'url(#areaGrad)');
+  area.classList.add('gradient-area');
+  svg.appendChild(area);
+
+  // Line
+  const line = document.createElementNS(svgNS, 'path');
+  line.setAttribute('d', linePath);
+  line.setAttribute('stroke', 'url(#lineGrad)');
+  line.classList.add('growth-line');
+  svg.appendChild(line);
+
+  // Nodes
+  const popup = document.getElementById('popup');
+
+  DATA.forEach((d, i) => {
+    const cx = xPos(d.year);
+    const cy = yPos(d.valB);
+
+    const g = document.createElementNS(svgNS, 'g');
+    g.classList.add('node-group');
+    g.dataset.index = i;
+
+    // Hover hit area
+    const hit = document.createElementNS(svgNS, 'circle');
+    hit.setAttribute('cx', cx);
+    hit.setAttribute('cy', cy);
+    hit.setAttribute('r', 24);
+    hit.setAttribute('fill', 'transparent');
+    g.appendChild(hit);
+
+    // Vertical guide line (subtle)
+    const guide = document.createElementNS(svgNS, 'line');
+    guide.setAttribute('x1', cx); guide.setAttribute('x2', cx);
+    guide.setAttribute('y1', cy + 8); guide.setAttribute('y2', H);
+    guide.setAttribute('stroke', 'rgba(61,139,110,0.1)');
+    guide.setAttribute('stroke-width', '1');
+    guide.setAttribute('stroke-dasharray', '3,4');
+    g.appendChild(guide);
+
+    // Diamond
+    const size = 11;
+    const diamond = document.createElementNS(svgNS, 'rect');
+    diamond.setAttribute('x', cx - size/2);
+    diamond.setAttribute('y', cy - size/2);
+    diamond.setAttribute('width', size);
+    diamond.setAttribute('height', size);
+    diamond.setAttribute('transform', `rotate(45 ${cx} ${cy})`);
+    diamond.setAttribute('fill', '#111f1a');
+    diamond.setAttribute('stroke', '#2a5c47');
+    diamond.setAttribute('stroke-width', '1.5');
+    diamond.classList.add('node-diamond-shape');
+    g.appendChild(diamond);
+
+    // Valuation label above
+    const valLabel = document.createElementNS(svgNS, 'text');
+    valLabel.setAttribute('x', cx);
+    valLabel.setAttribute('y', cy - 18);
+    valLabel.classList.add('node-val-label');
+    valLabel.textContent = d.valLabel;
+    g.appendChild(valLabel);
+
+    // Year label below
+    const yearLabel = document.createElementNS(svgNS, 'text');
+    yearLabel.setAttribute('x', cx);
+    yearLabel.setAttribute('y', cy + 28);
+    yearLabel.classList.add('node-year-label');
+    yearLabel.textContent = d.year;
+    g.appendChild(yearLabel);
+
+    g.addEventListener('mouseenter', () => {
+      if (activeNode && activeNode !== g) activeNode.classList.remove('active');
+      g.classList.add('active');
+      activeNode = g;
+      showPopup(d, cx, cy, W, H);
+    });
+
+    g.addEventListener('mouseleave', () => {
+      g.classList.remove('active');
+      activeNode = null;
+      popup.classList.remove('visible');
+    });
+
+    svg.appendChild(g);
+  });
+
+  container.innerHTML = '';
+  container.appendChild(svg);
+}
+
+function showPopup(d, cx, cy, W, H) {
+  const popup = document.getElementById('popup');
+  const graphDiv = document.getElementById('graphSvg');
+  const graphRect = graphDiv.getBoundingClientRect();
+  const areaRect = document.querySelector('.graph-area').getBoundingClientRect();
+
+  const pxX = (cx / W) * graphRect.width + (graphRect.left - areaRect.left);
+  const pxY = (cy / H) * graphRect.height + (graphRect.top - areaRect.top);
+
+  const popupW = 380;
+  let left = pxX + 28;
+  if (left + popupW > areaRect.width - 10) left = pxX - popupW - 28;
+  if (left < 0) left = 10;
+
+  let top = pxY - 60;
+  if (top < 0) top = 10;
+  if (top + 320 > areaRect.height) top = areaRect.height - 330;
+
+  popup.style.left = `${left}px`;
+  popup.style.top = `${top}px`;
+
+  document.getElementById('popupPhase').textContent = d.phase;
+  document.getElementById('popupTitle').textContent = d.title;
+  document.getElementById('popupBody').textContent = d.body;
+
+  document.getElementById('popupMetrics').innerHTML = d.metrics.map(m => `
+    <div>
+      <div class="popup-metric-label">${m.label}</div>
+      <div class="popup-metric-value">${m.value} <span class="unit">${m.unit}</span></div>
+    </div>
+  `).join('');
+
+  popup.classList.add('visible');
+}
+
+// Init
+requestAnimationFrame(() => {
+  buildGraph();
+});
+
+let resizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(buildGraph, 150);
+});
+</script>
+
+</body>
+</html>

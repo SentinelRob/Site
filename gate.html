@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sentinel Robotics — Investor Access</title>
+<link rel="stylesheet" href="css/sentinel.css">
+<style>
+body {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.gate-layout {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.gate-layout::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(196, 64, 42, 0.04) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.gate-kanji-bg {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: 'Noto Sans JP', sans-serif;
+  font-weight: 100;
+  font-size: min(40vw, 360px);
+  color: rgba(255,255,255,0.015);
+  user-select: none;
+  pointer-events: none;
+  letter-spacing: 20px;
+}
+
+.gate-box {
+  width: 100%;
+  max-width: 420px;
+  padding: 0 24px;
+  position: relative;
+  z-index: 1;
+}
+
+.gate-brand {
+  text-align: center;
+  margin-bottom: 48px;
+}
+
+.gate-mark {
+  width: 56px;
+  height: 56px;
+  border: 1px solid var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-weight: 700;
+  font-size: 24px;
+  color: var(--accent);
+}
+
+.gate-title {
+  font-family: 'Barlow', sans-serif;
+  font-weight: 200;
+  font-size: 32px;
+  letter-spacing: 12px;
+  text-transform: uppercase;
+  color: var(--fg);
+  margin-bottom: 8px;
+}
+
+.gate-sub {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 300;
+  font-size: 11px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--fg3);
+}
+
+.gate-form {
+  margin-top: 0;
+}
+
+.gate-label {
+  display: block;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 300;
+  font-size: 10px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--fg3);
+  margin-bottom: 10px;
+}
+
+.gate-input-wrap {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.gate-input {
+  width: 100%;
+  background: var(--bg2);
+  border: 1px solid var(--rule2);
+  color: var(--fg);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 16px;
+  letter-spacing: 4px;
+  padding: 14px 18px;
+  outline: none;
+  transition: border-color 0.3s;
+}
+
+.gate-input::placeholder {
+  color: var(--fg3);
+  letter-spacing: 2px;
+  font-size: 12px;
+}
+
+.gate-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 20px rgba(196, 64, 42, 0.1);
+}
+
+.gate-input.error {
+  border-color: var(--accent);
+  animation: shake 0.4s ease;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-6px); }
+  75% { transform: translateX(6px); }
+}
+
+.gate-submit {
+  width: 100%;
+  background: transparent;
+  border: 1px solid var(--accent);
+  color: var(--accent2);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 500;
+  font-size: 13px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  padding: 14px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.gate-submit:hover {
+  background: var(--accent);
+  color: var(--fg);
+  box-shadow: 0 0 30px var(--accent-glow);
+}
+
+.gate-error {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 300;
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: var(--accent);
+  text-align: center;
+  margin-top: 16px;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.gate-error.visible {
+  opacity: 1;
+}
+
+.gate-footer {
+  text-align: center;
+  margin-top: 48px;
+}
+
+.gate-footer a {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 300;
+  font-size: 10px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--fg3);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.gate-footer a:hover {
+  color: var(--fg2);
+}
+
+.gate-class {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 300;
+  font-size: 9px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--accent);
+  opacity: 0.4;
+  text-align: center;
+  margin-top: 24px;
+}
+</style>
+</head>
+<body>
+
+<div class="scanline"></div>
+<div class="gate-kanji-bg">哨兵</div>
+
+<div class="gate-layout">
+  <div class="gate-box">
+    <div class="gate-brand">
+      <div class="gate-mark">哨</div>
+      <div class="gate-title">Sentinel</div>
+      <div class="gate-sub">Investor Access Portal</div>
+    </div>
+
+    <form class="gate-form" id="gateForm">
+      <label class="gate-label">Access Code</label>
+      <div class="gate-input-wrap">
+        <input
+          type="password"
+          class="gate-input"
+          id="gatePassword"
+          placeholder="Enter access code"
+          autocomplete="off"
+          autofocus
+        >
+      </div>
+      <button type="submit" class="gate-submit">Authenticate</button>
+      <div class="gate-error" id="gateError">Access denied. Invalid credentials.</div>
+    </form>
+
+    <div class="gate-footer">
+      <a href="index.html">&larr; Return to Public Site</a>
+    </div>
+
+    <div class="gate-class">Confidential &mdash; Authorised Recipients Only</div>
+  </div>
+</div>
+
+<script src="js/auth.js"></script>
+<script>
+// If already authenticated, redirect to deck
+if (isAuthenticated()) {
+  window.location.href = 'deck/index.html';
+}
+
+document.getElementById('gateForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const input = document.getElementById('gatePassword');
+  const error = document.getElementById('gateError');
+
+  input.classList.remove('error');
+  error.classList.remove('visible');
+
+  const valid = await verifyPassword(input.value);
+
+  if (valid) {
+    setAuthenticated();
+    // Smooth transition
+    document.body.style.transition = 'opacity 0.5s';
+    document.body.style.opacity = '0';
+    setTimeout(() => {
+      window.location.href = 'deck/index.html';
+    }, 500);
+  } else {
+    input.classList.add('error');
+    error.classList.add('visible');
+    setTimeout(() => input.classList.remove('error'), 400);
+    input.value = '';
+    input.focus();
+  }
+});
+</script>
+</body>
+</html>
