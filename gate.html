@@ -259,7 +259,7 @@ body {
 <script>
 // If already authenticated, redirect to deck
 if (isAuthenticated()) {
-  window.location.href = 'deck/index.html';
+  window.location.href = '/deck/index.html';
 }
 
 document.getElementById('gateForm').addEventListener('submit', async (e) => {
@@ -278,7 +278,7 @@ document.getElementById('gateForm').addEventListener('submit', async (e) => {
     document.body.style.transition = 'opacity 0.5s';
     document.body.style.opacity = '0';
     setTimeout(() => {
-      window.location.href = 'deck/index.html';
+      window.location.href = '/deck/index.html';
     }, 500);
   } else {
     input.classList.add('error');

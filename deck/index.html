@@ -478,7 +478,7 @@ html, body {
 
 <!-- Deck Navigation -->
 <nav class="deck-nav">
-  <a href="../index.html" class="deck-brand">
+  <a href="/" class="deck-brand">
     <div class="mark">哨</div>
     <span class="wordmark">Sentinel</span>
   </a>
@@ -745,7 +745,7 @@ html, body {
 <script>
 // Auth check
 if (!isAuthenticated()) {
-  window.location.href = '../gate.html';
+  window.location.href = '/gate.html';
 }
 
 // Slide state
@@ -829,7 +829,7 @@ document.getElementById('deckLogout').addEventListener('click', (e) => {
 document.addEventListener('keydown', (e) => {
   if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); nextSlide(); }
   if (e.key === 'ArrowLeft') { e.preventDefault(); prevSlide(); }
-  if (e.key === 'Escape') { window.location.href = '../index.html'; }
+  if (e.key === 'Escape') { window.location.href = '/'; }
 });
 
 // Touch swipe

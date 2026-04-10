@@ -45,7 +45,7 @@ function setAuthenticated() {
 
 function logout() {
   localStorage.removeItem(SESSION_KEY);
-  window.location.href = 'gate.html';
+  window.location.href = '/gate.html';
 }
 
 async function verifyPassword(input) {
@@ -56,7 +56,7 @@ async function verifyPassword(input) {
 // Redirect to gate if not authenticated (for protected pages)
 function requireAuth() {
   if (!isAuthenticated()) {
-    window.location.href = 'gate.html';
+    window.location.href = '/gate.html';
     return false;
   }
   return true;
