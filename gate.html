@@ -255,37 +255,61 @@ body {
   </div>
 </div>
 
-<script src="js/auth.js"></script>
+<script src="/js/auth.js"></script>
 <script>
 // If already authenticated, redirect to deck
-if (isAuthenticated()) {
-  window.location.href = '/deck/index.html';
-}
+try {
+  if (typeof isAuthenticated === 'function' && isAuthenticated()) {
+    window.location.href = '/deck/index.html';
+  }
+} catch(e) { console.error('Auth check failed:', e); }
 
-document.getElementById('gateForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
+async function handleLogin() {
   const input = document.getElementById('gatePassword');
   const error = document.getElementById('gateError');
+  if (!input.value) return;
 
   input.classList.remove('error');
   error.classList.remove('visible');
 
-  const valid = await verifyPassword(input.value);
+  try {
+    const valid = await verifyPassword(input.value);
 
-  if (valid) {
-    setAuthenticated();
-    // Smooth transition
-    document.body.style.transition = 'opacity 0.5s';
-    document.body.style.opacity = '0';
-    setTimeout(() => {
-      window.location.href = '/deck/index.html';
-    }, 500);
-  } else {
-    input.classList.add('error');
+    if (valid) {
+      setAuthenticated();
+      document.body.style.transition = 'opacity 0.5s';
+      document.body.style.opacity = '0';
+      setTimeout(function() {
+        window.location.href = '/deck/index.html';
+      }, 500);
+    } else {
+      input.classList.add('error');
+      error.classList.add('visible');
+      setTimeout(function() { input.classList.remove('error'); }, 400);
+      input.value = '';
+      input.focus();
+    }
+  } catch(err) {
+    console.error('Login error:', err);
+    error.textContent = 'Authentication error. Please try again.';
     error.classList.add('visible');
-    setTimeout(() => input.classList.remove('error'), 400);
-    input.value = '';
-    input.focus();
+  }
+}
+
+document.getElementById('gateForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  handleLogin();
+});
+
+document.querySelector('.gate-submit').addEventListener('click', function(e) {
+  e.preventDefault();
+  handleLogin();
+});
+
+document.getElementById('gatePassword').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    handleLogin();
   }
 });
 </script>
